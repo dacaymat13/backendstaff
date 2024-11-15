@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 
 class ExpenseController extends Controller
@@ -47,7 +48,10 @@ class ExpenseController extends Controller
         ]);
 
         $data = $request->all();
-        $data['Datetime_taken'] = now();
+
+        $timezone = 'Asia/Manila';
+
+        $data['Datetime_taken'] = Carbon::now($timezone);
 
         $exp = Expense::create($data);
 

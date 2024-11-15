@@ -93,6 +93,9 @@ class AuthController extends Controller
 
     public function displayincome(Request $request)
     {
+
+        $date = now()->toDateString(); 
+
         $allPayments = Admin::join('payments', 'admins.Admin_ID', '=', 'payments.Admin_ID')
             ->join('transactions','payments.Transac_ID','=','transactions.Transac_ID')
             ->select(
@@ -117,9 +120,10 @@ class AuthController extends Controller
                 'paymentDay',
                 'paymentYear'
             )
+            ->whereDate('Datetime_of_Payment', $date)
             ->get();
 
-        $allExpenses = Admin::leftJoin('expenses', 'admins.Admin_ID', '=', 'expenses.Admin_ID')
+        $allExpenses = Admin::join('expenses', 'admins.Admin_ID', '=', 'expenses.Admin_ID')
             ->select(
                 'expenses.Admin_ID',
                 'admins.Admin_lname',
@@ -127,9 +131,11 @@ class AuthController extends Controller
                 'admins.Admin_mname',
                 'expenses.Amount',
                 'expenses.Desc_reason',
+                'Datetime_taken',
                 DB::raw("CONCAT(admins.Admin_fname, ' ', admins.Admin_mname, ' ', admins.Admin_lname) AS name"),
                 // DB::raw('SUM(expenses.Amount) as expenseAmount')
             )
+            ->whereDate('Datetime_taken', $date)
             // ->groupBy(
             //     'expenses.Admin_ID',
             //     'admins.Admin_lname',
@@ -138,10 +144,10 @@ class AuthController extends Controller
             // )
             ->get();
 
-        $expense = Expense::sum('Amount');
-        $payments = Payment::sum('Amount');
+        $expense = Expense::whereDate('Datetime_taken', $date)->sum('Amount');
+        $payments = Payment::whereDate('Datetime_of_Payment', $date)->sum('Amount');
 
-        $totalall = $payments + $expense;
+        $totalall = $payments - $expense;
 
         return response()->json([
             'payment' => $allPayments,
